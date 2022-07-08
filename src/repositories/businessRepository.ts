@@ -1,5 +1,5 @@
-import { connection } from "../database.js";
-import { TransactionTypes } from "./cardRepository.js";
+import db from '../config/database.js';
+import { TransactionTypes } from './cardRepository.js';
 
 export interface Business {
   id: number;
@@ -8,9 +8,9 @@ export interface Business {
 }
 
 export async function findById(id: number) {
-  const result = await connection.query<Business, [number]>(
-    "SELECT * FROM businesses WHERE id=$1",
-    [id]
+  const result = await db.query<Business, [number]>(
+    'SELECT * FROM businesses WHERE id=$1',
+    [id],
   );
 
   return result.rows[0];
