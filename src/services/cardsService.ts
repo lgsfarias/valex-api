@@ -67,11 +67,64 @@ const createCard = async (
     securityCode: encryptedsecurityCode,
     expirationDate,
     isVirtual: false,
-    isBlocked: true,
+    isBlocked: false,
     type,
   };
 
   await cardsRepository.insert(card);
 };
 
-export { isValidApiKey, createCard };
+const activateCard = async (
+  cardId: number,
+  cardCvc: string,
+  password: string,
+) => {
+  if (password.length !== 4) {
+    throw {
+      status: 400,
+      message: 'Password must be 4 digits long',
+    };
+  }
+
+  const card = await cardsRepository.findById(cardId);
+
+  if (!card) {
+    throw {
+      status: 404,
+      message: 'Card not found',
+    };
+  }
+
+  if (
+    card.expirationDate <
+    new Date().toLocaleDateString('pt-br', {
+      year: '2-digit',
+      month: '2-digit',
+    })
+  ) {
+    throw {
+      status: 400,
+      message: 'Card expired',
+    };
+  }
+
+  if (card.password) {
+    throw {
+      status: 400,
+      message: 'Card already activated',
+    };
+  }
+
+  if (cardCvc !== cryptr.decrypt(card.securityCode)) {
+    throw {
+      status: 400,
+      message: 'Invalid security code',
+    };
+  }
+
+  const encryptedPassword = cryptr.encrypt(password);
+
+  await cardsRepository.update(cardId, { password: encryptedPassword });
+};
+
+export { isValidApiKey, createCard, activateCard };
