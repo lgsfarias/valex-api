@@ -1,42 +1,47 @@
 import { faker } from '@faker-js/faker';
 import Cryptr from 'cryptr';
+import AppError from '../utils/errors/AppError.js';
 import * as cardsRepository from '../repositories/cardRepository.js';
 import * as companiesRepository from '../repositories/companyRepository.js';
 import * as employeeRepository from '../repositories/employeeRepository.js';
 
 const cryptr = new Cryptr(process.env.CRYPTR_KEY);
 
-const isValidApiKey = async (apiKey: string) => {
+export const isValidApiKey = async (apiKey: string) => {
   const validCompany = await companiesRepository.findByApiKey(apiKey);
 
   return !!validCompany;
 };
 
-const createCard = async (
-  employeeId: number,
-  type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health',
-) => {
+export const getEmployeeById = async (employeeId: number) => {
   const employee = await employeeRepository.findById(employeeId);
 
   if (!employee) {
-    throw {
-      status: 404,
-      message: 'Employee not found',
-    };
+    throw new AppError('Employee not found', 404);
   }
 
+  return employee;
+};
+
+export const verifyIfEmployeeHasCard = async (
+  employeeId: number,
+  type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health',
+) => {
   const employeeAlreadyHasCard = await cardsRepository.findByTypeAndEmployeeId(
     type,
     employeeId,
   );
 
   if (employeeAlreadyHasCard) {
-    throw {
-      status: 400,
-      message: 'Employee already has a card',
-    };
+    throw new AppError('Employee already has card', 400);
   }
+};
 
+export const generateCardNumber = () => {
+  return faker.finance.creditCardNumber();
+};
+
+export const generateCardHolderName = (employee: any) => {
   const { fullName } = employee;
   const cardholderName = fullName
     .split(' ')
@@ -50,6 +55,10 @@ const createCard = async (
     })
     .join(' ');
 
+  return cardholderName;
+};
+
+export const generateExpirationDate = () => {
   const expirationDate = new Date(
     new Date().getTime() + 5 * 365 * 24 * 60 * 60 * 1000,
   ).toLocaleDateString('pt-br', {
@@ -57,42 +66,42 @@ const createCard = async (
     month: '2-digit',
   });
 
+  return expirationDate;
+};
+
+export const generateSecurityCode = () => {
   const securityCode = faker.finance.creditCardCVV();
   const encryptedsecurityCode = cryptr.encrypt(securityCode);
 
-  const card = {
-    employeeId,
-    number: faker.finance.creditCardNumber(),
-    cardholderName,
-    securityCode: encryptedsecurityCode,
-    expirationDate,
-    isVirtual: false,
-    isBlocked: false,
-    type,
-  };
+  return [securityCode, encryptedsecurityCode];
+};
 
+export const createCard = async (card: {
+  employeeId: number;
+  number: string;
+  cardholderName: string;
+  securityCode: string;
+  expirationDate: string;
+  isVirtual: boolean;
+  isBlocked: boolean;
+  type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health';
+}) => {
   await cardsRepository.insert(card);
 };
 
-const activateCard = async (
+export const activateCard = async (
   cardId: number,
   cardCvc: string,
   password: string,
 ) => {
   if (password.length !== 4) {
-    throw {
-      status: 400,
-      message: 'Password must be 4 digits long',
-    };
+    throw new AppError('Password must be 4 digits long', 400);
   }
 
   const card = await cardsRepository.findById(cardId);
 
   if (!card) {
-    throw {
-      status: 404,
-      message: 'Card not found',
-    };
+    throw new AppError('Card not found', 404);
   }
 
   if (
@@ -102,29 +111,18 @@ const activateCard = async (
       month: '2-digit',
     })
   ) {
-    throw {
-      status: 400,
-      message: 'Card expired',
-    };
+    throw new AppError('Card expired', 400);
   }
 
   if (card.password) {
-    throw {
-      status: 400,
-      message: 'Card already activated',
-    };
+    throw new AppError('Card already activated', 400);
   }
 
   if (cardCvc !== cryptr.decrypt(card.securityCode)) {
-    throw {
-      status: 400,
-      message: 'Invalid security code',
-    };
+    throw new AppError('Invalid security code', 400);
   }
 
   const encryptedPassword = cryptr.encrypt(password);
 
   await cardsRepository.update(cardId, { password: encryptedPassword });
 };
-
-export { isValidApiKey, createCard, activateCard };
