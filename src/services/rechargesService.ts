@@ -34,6 +34,12 @@ export const verifyIfCardIsExpired = async (card: any) => {
   }
 };
 
+export const verifyIfCardIsBloqued = async (card: any) => {
+  if (card.isBlocked) {
+    throw new AppError('Card is blocked', 400);
+  }
+};
+
 export const verifyIfEmployeeWorksForCompany = async (
   employeeId: number,
   companyId: number,

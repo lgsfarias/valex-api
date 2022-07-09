@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker';
-import Cryptr from 'cryptr';
 import AppError from '../utils/errors/AppError.js';
 import * as cardsRepository from '../repositories/cardRepository.js';
 import * as employeeRepository from '../repositories/employeeRepository.js';
-
-const cryptr = new Cryptr(process.env.CRYPTR_KEY);
+import * as rechargeRepository from '../repositories/rechargeRepository.js';
+import * as paymentRepository from '../repositories/paymentRepository.js';
+import cryptr from '../config/cryptr.js';
 
 export const getEmployeeById = async (employeeId: number) => {
   const employee = await employeeRepository.findById(employeeId);
@@ -118,4 +118,15 @@ export const activateCard = async (
   const encryptedPassword = cryptr.encrypt(password);
 
   await cardsRepository.update(cardId, { password: encryptedPassword });
+};
+
+export const getBalance = async (cardId: number) => {
+  const totalRecharges = await rechargeRepository.getTotalAmountByCardId(
+    cardId,
+  );
+  const totalPayments = await paymentRepository.getTotalAmountByCardId(cardId);
+
+  const balance = totalRecharges - totalPayments;
+
+  return balance;
 };
