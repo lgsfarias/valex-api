@@ -2,16 +2,9 @@ import { faker } from '@faker-js/faker';
 import Cryptr from 'cryptr';
 import AppError from '../utils/errors/AppError.js';
 import * as cardsRepository from '../repositories/cardRepository.js';
-import * as companiesRepository from '../repositories/companyRepository.js';
 import * as employeeRepository from '../repositories/employeeRepository.js';
 
 const cryptr = new Cryptr(process.env.CRYPTR_KEY);
-
-export const isValidApiKey = async (apiKey: string) => {
-  const validCompany = await companiesRepository.findByApiKey(apiKey);
-
-  return !!validCompany;
-};
 
 export const getEmployeeById = async (employeeId: number) => {
   const employee = await employeeRepository.findById(employeeId);
@@ -45,8 +38,8 @@ export const generateCardHolderName = (employee: any) => {
   const { fullName } = employee;
   const cardholderName = fullName
     .split(' ')
-    .filter((name) => name.length > 2)
-    .map((word, index, row) => {
+    .filter((name: string) => name.length > 2)
+    .map((word: string, index: number, row: string[]) => {
       if (index === 0 || index === row.length - 1) {
         return word.toUpperCase();
       }
