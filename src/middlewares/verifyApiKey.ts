@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import * as cardServices from '../services/cardsService.js';
+import AppError from '../utils/errors/AppError.js';
+import * as companiesRepository from '../repositories/companyRepository.js';
 
 const verifyApiKey = async (
   req: Request,
@@ -9,22 +10,16 @@ const verifyApiKey = async (
   const apiKey = req.header('x-api-key');
 
   if (!apiKey) {
-    throw {
-      status: 401,
-      message: 'Unauthorized',
-    };
+    throw new AppError('Unauthenticated', 401);
   }
 
-  const validApiKey = await cardServices.isValidApiKey(apiKey);
+  const validCompany = await companiesRepository.findByApiKey(apiKey);
 
-  if (!validApiKey) {
-    throw {
-      status: 401,
-      message: 'Invalid API key',
-    };
+  if (!validCompany) {
+    throw new AppError('Invalid API key', 401);
   }
 
-  res.locals.apiKey = apiKey;
+  res.locals.company = validCompany;
 
   next();
 };
