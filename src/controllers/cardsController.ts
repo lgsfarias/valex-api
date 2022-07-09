@@ -35,4 +35,19 @@ const activateCard = async (req: Request, res: Response) => {
   res.status(200).send('Card activated successfully');
 };
 
-export { createCard, activateCard };
+const getBalance = async (req: Request, res: Response) => {
+  //FIXME: need password to get balance
+  const { cardId } = req.body;
+
+  const balance = await cardServices.getBalance(cardId);
+  const transactions = await cardServices.getTransactions(cardId);
+  const recharges = await cardServices.getRecharges(cardId);
+
+  res.status(200).json({
+    balance,
+    transactions,
+    recharges,
+  });
+};
+
+export { createCard, activateCard, getBalance };

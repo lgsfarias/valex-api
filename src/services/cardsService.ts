@@ -130,3 +130,15 @@ export const getBalance = async (cardId: number) => {
 
   return balance;
 };
+
+export const getTransactions = async (cardId: number) => {
+  const transactions = await paymentRepository.findByCardId(cardId);
+
+  return transactions;
+};
+
+export const getRecharges = async (cardId: number) => {
+  const recharges = await rechargeRepository.findByCardId(cardId);
+
+  return recharges;
+};
