@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import AppError from '../utils/errors/AppError.js';
+import { Card } from '../repositories/cardRepository.js';
 import {
   cardRepository,
   employeeRepository,
@@ -155,6 +156,24 @@ export const verifyIfCardExists = async (cardId: number) => {
   return card;
 };
 
+export const verifyIfCardExistsByDetails = async (
+  number: string,
+  cardholderName: string,
+  expirationDate: string,
+) => {
+  const card = await cardRepository.findByCardDetails(
+    number,
+    cardholderName,
+    expirationDate,
+  );
+
+  if (!card) {
+    throw new AppError('Card not found', 404);
+  }
+
+  return card;
+};
+
 export const verifyIfCardIsActive = async (card: any) => {
   if (!card.password) {
     throw new AppError('Card is not active', 400);
@@ -193,6 +212,12 @@ export const verifyPassword = async (password: string, cardId: number) => {
 
   if (cryptr.decrypt(card.password) !== password) {
     throw new AppError('Invalid password', 400);
+  }
+};
+
+export const verifySecurityCode = async (securityCode: string, card: Card) => {
+  if (cryptr.decrypt(card.securityCode) !== securityCode) {
+    throw new AppError('Invalid security code', 400);
   }
 };
 
