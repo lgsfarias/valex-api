@@ -1,18 +1,9 @@
 import { Business } from '../repositories/businessRepository.js';
-import { Card } from '../repositories/cardRepository.js';
-import cryptr from '../config/cryptr.js';
 import AppError from '../utils/errors/AppError.js';
-import * as cardsRepository from '../repositories/cardRepository.js';
-import * as businessRepository from '../repositories/businessRepository.js';
-import * as paymentRepository from '../repositories/paymentRepository.js';
-
-export const verifyPassword = async (password: string, cardId: number) => {
-  const card = await cardsRepository.findById(cardId);
-
-  if (cryptr.decrypt(card.password) !== password) {
-    throw new AppError('Invalid password', 400);
-  }
-};
+import {
+  paymentRepository,
+  businessRepository,
+} from '../repositories/index.js';
 
 export const verifyIfBusinessExist = async (businessId: number) => {
   const business = await businessRepository.findById(businessId);

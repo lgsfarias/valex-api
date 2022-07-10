@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import AppError from '../utils/errors/AppError.js';
-import * as rechargesServices from '../services/rechargesService.js';
-import * as paymentsService from '../services/paymentsService.js';
-import * as cardsService from '../services/cardsService.js';
+import { cardsService, paymentsService } from './../services/index.js';
 
 const makePayment = async (req: Request, res: Response) => {
   const {
@@ -26,11 +24,11 @@ const makePayment = async (req: Request, res: Response) => {
     throw new AppError('Invalid amount', 400);
   }
 
-  const card = await rechargesServices.verifyIfCardExists(cardId);
-  await rechargesServices.verifyIfCardIsActive(card);
-  await rechargesServices.verifyIfCardIsExpired(card);
-  await rechargesServices.verifyIfCardIsBloqued(card);
-  await paymentsService.verifyPassword(password, cardId);
+  const card = await cardsService.verifyIfCardExists(cardId);
+  await cardsService.verifyIfCardIsActive(card);
+  await cardsService.verifyIfCardIsExpired(card);
+  await cardsService.verifyIfCardIsBloqued(card);
+  await cardsService.verifyPassword(password, cardId);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
   paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
   const balance = await cardsService.getBalance(cardId);

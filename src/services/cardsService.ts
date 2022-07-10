@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker';
 import AppError from '../utils/errors/AppError.js';
-import * as cardsRepository from '../repositories/cardRepository.js';
-import * as employeeRepository from '../repositories/employeeRepository.js';
-import * as rechargeRepository from '../repositories/rechargeRepository.js';
-import * as paymentRepository from '../repositories/paymentRepository.js';
+import {
+  cardRepository,
+  employeeRepository,
+  rechargeRepository,
+  paymentRepository,
+} from '../repositories/index.js';
 import cryptr from '../config/cryptr.js';
 
 export const getEmployeeById = async (employeeId: number) => {
@@ -20,7 +22,7 @@ export const verifyIfEmployeeHasCard = async (
   employeeId: number,
   type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health',
 ) => {
-  const employeeAlreadyHasCard = await cardsRepository.findByTypeAndEmployeeId(
+  const employeeAlreadyHasCard = await cardRepository.findByTypeAndEmployeeId(
     type,
     employeeId,
   );
@@ -79,7 +81,7 @@ export const createCard = async (card: {
   isBlocked: boolean;
   type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health';
 }) => {
-  await cardsRepository.insert(card);
+  await cardRepository.insert(card);
 };
 
 export const activateCard = async (
@@ -91,7 +93,7 @@ export const activateCard = async (
     throw new AppError('Password must be 4 digits long', 400);
   }
 
-  const card = await cardsRepository.findById(cardId);
+  const card = await cardRepository.findById(cardId);
 
   if (!card) {
     throw new AppError('Card not found', 404);
@@ -117,7 +119,7 @@ export const activateCard = async (
 
   const encryptedPassword = cryptr.encrypt(password);
 
-  await cardsRepository.update(cardId, { password: encryptedPassword });
+  await cardRepository.update(cardId, { password: encryptedPassword });
 };
 
 export const getBalance = async (cardId: number) => {
@@ -141,4 +143,63 @@ export const getRecharges = async (cardId: number) => {
   const recharges = await rechargeRepository.findByCardId(cardId);
 
   return recharges;
+};
+
+export const verifyIfCardExists = async (cardId: number) => {
+  const card = await cardRepository.findById(cardId);
+
+  if (!card) {
+    throw new AppError('Card not found', 404);
+  }
+
+  return card;
+};
+
+export const verifyIfCardIsActive = async (card: any) => {
+  if (!card.password) {
+    throw new AppError('Card is not active', 400);
+  }
+};
+
+export const verifyIfCardIsExpired = async (card: any) => {
+  const expirationMonth = parseInt(card.expirationDate.split('/')[0]);
+  const expirationYear = parseInt(card.expirationDate.split('/')[1]) + 2000;
+
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+
+  if (expirationYear < currentYear) {
+    throw new AppError('Card is expired', 400);
+  }
+  if (expirationYear === currentYear && expirationMonth < currentMonth) {
+    throw new AppError('Card is expired', 400);
+  }
+};
+
+export const verifyIfCardIsBloqued = async (card: any) => {
+  if (card.isBlocked) {
+    throw new AppError('Card is blocked', 400);
+  }
+};
+
+export const verifyIfCardIsUnlocked = async (card: any) => {
+  if (!card.isBlocked) {
+    throw new AppError('Card is not blocked', 400);
+  }
+};
+
+export const verifyPassword = async (password: string, cardId: number) => {
+  const card = await cardRepository.findById(cardId);
+
+  if (cryptr.decrypt(card.password) !== password) {
+    throw new AppError('Invalid password', 400);
+  }
+};
+
+export const blockCard = async (cardId: number) => {
+  await cardRepository.update(cardId, { isBlocked: true });
+};
+
+export const unlockCard = async (cardId: number) => {
+  await cardRepository.update(cardId, { isBlocked: false });
 };

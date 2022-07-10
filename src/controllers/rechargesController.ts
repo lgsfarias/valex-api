@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import AppError from '../utils/errors/AppError.js';
-import * as rechargesServices from '../services/rechargesService.js';
+import { cardsService, rechargesService } from './../services/index.js';
 
 const makeRecharge = async (req: Request, res: Response) => {
   const { cardId, amount } = req.body;
@@ -13,15 +13,15 @@ const makeRecharge = async (req: Request, res: Response) => {
     throw new AppError('Amount must be greater than 0', 400);
   }
 
-  const card = await rechargesServices.verifyIfCardExists(cardId);
-  await rechargesServices.verifyIfCardIsActive(card);
-  await rechargesServices.verifyIfCardIsExpired(card);
-  await rechargesServices.verifyIfEmployeeWorksForCompany(
+  const card = await cardsService.verifyIfCardExists(cardId);
+  await cardsService.verifyIfCardIsActive(card);
+  await cardsService.verifyIfCardIsExpired(card);
+  await rechargesService.verifyIfEmployeeWorksForCompany(
     card.employeeId,
     res.locals.company.id,
   );
 
-  await rechargesServices.makeRecharge({ cardId, amount });
+  await rechargesService.makeRecharge({ cardId, amount });
 
   res.status(201).json({ message: 'Recharge successful' });
 };
