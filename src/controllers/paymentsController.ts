@@ -25,6 +25,7 @@ const makePayment = async (req: Request, res: Response) => {
   }
 
   const card = await cardsService.verifyIfCardExists(cardId);
+  await cardsService.verifyIfCardIsNotVirtual(card);
   await cardsService.verifyIfCardIsActive(card);
   await cardsService.verifyIfCardIsExpired(card);
   await cardsService.verifyIfCardIsBloqued(card);
@@ -80,15 +81,23 @@ const makeOnlinePayment = async (req: Request, res: Response) => {
     cardholderName,
     expirationDate,
   );
+
   await cardsService.verifyIfCardIsActive(card);
   await cardsService.verifyIfCardIsExpired(card);
   await cardsService.verifyIfCardIsBloqued(card);
   await cardsService.verifySecurityCode(securityCode, card);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
   paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
-  const balance = await cardsService.getBalance(card.id);
+
+  const balance = await cardsService.getBalance(
+    card.isVirtual ? card.originalCardId : card.id,
+  );
   await paymentsService.verifyIfCardHasEnoughBalance(balance, amount);
-  await paymentsService.makePayment({ cardId: card.id, businessId, amount });
+  await paymentsService.makePayment({
+    cardId: card.isVirtual ? card.originalCardId : card.id,
+    businessId,
+    amount,
+  });
 
   res.status(200).json({
     message: 'Payment made successfully',

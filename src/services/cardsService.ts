@@ -33,7 +33,7 @@ export const verifyIfEmployeeHasCard = async (
   }
 };
 
-export const generateCardNumber = (flag: string) => {
+export const generateCardNumber = (flag: string = '') => {
   if (flag) {
     return faker.finance.creditCardNumber(flag);
   }

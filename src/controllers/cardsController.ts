@@ -6,7 +6,7 @@ const createCard = async (req: Request, res: Response) => {
 
   const employee = await cardsService.getEmployeeById(employeeId);
   await cardsService.verifyIfEmployeeHasCard(employeeId, type);
-  const cardNumber = cardsService.generateCardNumber('');
+  const cardNumber = cardsService.generateCardNumber();
   const cardholderName = cardsService.generateCardHolderName(employee);
   const expirationDate = cardsService.generateExpirationDate();
   const [securityCode, encryptedsecurityCode] =
@@ -38,9 +38,9 @@ const activateCard = async (req: Request, res: Response) => {
 };
 
 const getBalance = async (req: Request, res: Response) => {
-  //FIXME: need password to get balance?
   const { cardId } = req.body;
 
+  await cardsService.verifyIfCardExists(cardId);
   const balance = await cardsService.getBalance(cardId);
   const transactions = await cardsService.getTransactions(cardId);
   const recharges = await cardsService.getRecharges(cardId);

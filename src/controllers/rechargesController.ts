@@ -16,6 +16,7 @@ const makeRecharge = async (req: Request, res: Response) => {
   const card = await cardsService.verifyIfCardExists(cardId);
   await cardsService.verifyIfCardIsActive(card);
   await cardsService.verifyIfCardIsExpired(card);
+  await cardsService.verifyIfCardIsNotVirtual(card);
   await rechargesService.verifyIfEmployeeWorksForCompany(
     card.employeeId,
     res.locals.company.id,
