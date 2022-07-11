@@ -33,7 +33,10 @@ export const verifyIfEmployeeHasCard = async (
   }
 };
 
-export const generateCardNumber = () => {
+export const generateCardNumber = (flag: string) => {
+  if (flag) {
+    return faker.finance.creditCardNumber(flag);
+  }
   return faker.finance.creditCardNumber();
 };
 
@@ -82,6 +85,10 @@ export const createCard = async (card: {
   isBlocked: boolean;
   type: 'groceries' | 'restaurant' | 'transport' | 'education' | 'health';
 }) => {
+  await cardRepository.insert(card);
+};
+
+export const createVirtualCard = async (card: Card) => {
   await cardRepository.insert(card);
 };
 
@@ -207,6 +214,18 @@ export const verifyIfCardIsUnlocked = async (card: any) => {
   }
 };
 
+export const verifyIfCardIsVirtual = async (card: any) => {
+  if (!card.isVirtual) {
+    throw new AppError('Card is not virtual', 400);
+  }
+};
+
+export const verifyIfCardIsNotVirtual = async (card: any) => {
+  if (card.isVirtual) {
+    throw new AppError('Card is virtual', 400);
+  }
+};
+
 export const verifyPassword = async (password: string, cardId: number) => {
   const card = await cardRepository.findById(cardId);
 
@@ -227,4 +246,8 @@ export const blockCard = async (cardId: number) => {
 
 export const unlockCard = async (cardId: number) => {
   await cardRepository.update(cardId, { isBlocked: false });
+};
+
+export const deleteCard = async (cardId: number) => {
+  await cardRepository.remove(cardId);
 };

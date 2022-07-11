@@ -1,40 +1,37 @@
 import { Request, Response } from 'express';
 import { cardsService } from '../services/index.js';
 
-const createCard = async (req: Request, res: Response) => {
-  const { employeeId, type } = req.body;
+const createVirtualCard = async (req: Request, res: Response) => {
+  const { originalCardId, password } = req.body;
 
-  const employee = await cardsService.getEmployeeById(employeeId);
-  await cardsService.verifyIfEmployeeHasCard(employeeId, type);
-  const cardNumber = cardsService.generateCardNumber('');
-  const cardholderName = cardsService.generateCardHolderName(employee);
+  const originalCard = await cardsService.verifyIfCardExists(originalCardId);
+  await cardsService.verifyIfCardIsActive(originalCard);
+  await cardsService.verifyIfCardIsExpired(originalCard);
+  await cardsService.verifyIfCardIsBloqued(originalCard);
+  await cardsService.verifyPassword(password, originalCardId);
+
+  const cardNumber = cardsService.generateCardNumber('mastercard');
   const expirationDate = cardsService.generateExpirationDate();
   const [securityCode, encryptedsecurityCode] =
     cardsService.generateSecurityCode();
 
   const card = {
-    employeeId,
+    employeeId: originalCard.employeeId,
     number: cardNumber,
-    cardholderName,
+    password: originalCard.password,
+    cardholderName: originalCard.cardholderName,
     securityCode: encryptedsecurityCode,
     expirationDate,
-    isVirtual: false,
+    isVirtual: true,
     isBlocked: false,
-    type,
+    type: originalCard.type,
+    originalCardId,
   };
 
   await cardsService.createCard(card);
 
   console.log({ securityCode });
   res.status(201).send('Card created successfully');
-};
-
-const activateCard = async (req: Request, res: Response) => {
-  const { cardId, cardCvc, password } = req.body;
-
-  await cardsService.activateCard(cardId, cardCvc, password);
-
-  res.status(200).send('Card activated successfully');
 };
 
 const getBalance = async (req: Request, res: Response) => {
@@ -66,6 +63,18 @@ const blockCard = async (req: Request, res: Response) => {
   res.status(200).send('Card blocked successfully');
 };
 
+const deleteVirtualCard = async (req: Request, res: Response) => {
+  const { cardId, password } = req.body;
+
+  const card = await cardsService.verifyIfCardExists(cardId);
+  await cardsService.verifyIfCardIsVirtual(card);
+  await cardsService.verifyPassword(password, cardId);
+
+  await cardsService.deleteCard(cardId);
+
+  res.status(200).send('Card deleted successfully');
+};
+
 const unlockCard = async (req: Request, res: Response) => {
   const { cardId, password } = req.body;
 
@@ -80,4 +89,4 @@ const unlockCard = async (req: Request, res: Response) => {
   res.status(200).send('Card unlocked successfully');
 };
 
-export { createCard, activateCard, getBalance, blockCard, unlockCard };
+export { createVirtualCard, deleteVirtualCard };
