@@ -94,7 +94,7 @@ export const createVirtualCard = async (card: Card) => {
 
 export const activateCard = async (
   cardId: number,
-  cardCvc: string,
+  cardCvv: string,
   password: string,
 ) => {
   if (password.length !== 4) {
@@ -121,7 +121,7 @@ export const activateCard = async (
     throw new AppError('Card already activated', 400);
   }
 
-  if (cardCvc !== cryptr.decrypt(card.securityCode)) {
+  if (cardCvv !== cryptr.decrypt(card.securityCode)) {
     throw new AppError('Invalid security code', 400);
   }
 

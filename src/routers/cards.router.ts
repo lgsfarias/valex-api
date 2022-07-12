@@ -7,11 +7,22 @@ import {
   unlockCard,
 } from '../controllers/cardsController.js';
 import verifyApiKey from '../middlewares/verifyApiKey.js';
+import verifySchema from '../middlewares/schemaValidation.js';
+import * as schemas from '../schemas/index.js';
 
 const cardsRouter = Router();
 
-cardsRouter.post('/', verifyApiKey, createCard);
-cardsRouter.post('/activate', activateCard);
+cardsRouter.post(
+  '/',
+  verifySchema(schemas.createCardSchema),
+  verifyApiKey,
+  createCard,
+);
+cardsRouter.post(
+  '/activate',
+  verifySchema(schemas.activateCardSchema),
+  activateCard,
+);
 cardsRouter.get('/balance', getBalance);
 cardsRouter.post('/lock', blockCard);
 cardsRouter.post('/unlock', unlockCard);
