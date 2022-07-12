@@ -1,19 +1,20 @@
 import { Request, Response } from 'express';
 import { cardsService } from '../services/index.js';
+import * as cardUtils from './../utils/cardUtils.js';
 
 const createVirtualCard = async (req: Request, res: Response) => {
   const { originalCardId, password } = req.body;
 
   const originalCard = await cardsService.verifyIfCardExists(originalCardId);
-  await cardsService.verifyIfCardIsActive(originalCard);
-  await cardsService.verifyIfCardIsExpired(originalCard);
-  await cardsService.verifyIfCardIsBloqued(originalCard);
-  await cardsService.verifyPassword(password, originalCardId);
+  await cardUtils.verifyIfCardIsActive(originalCard);
+  await cardUtils.verifyIfCardIsExpired(originalCard);
+  await cardUtils.verifyIfCardIsBloqued(originalCard);
+  await cardUtils.verifyPassword(password, originalCardId);
 
-  const cardNumber = cardsService.generateCardNumber('mastercard');
-  const expirationDate = cardsService.generateExpirationDate();
+  const cardNumber = cardUtils.generateCardNumber('mastercard');
+  const expirationDate = cardUtils.generateExpirationDate();
   const [securityCode, encryptedsecurityCode] =
-    cardsService.generateSecurityCode();
+    cardUtils.generateSecurityCode();
 
   const card = {
     employeeId: originalCard.employeeId,
@@ -38,8 +39,8 @@ const deleteVirtualCard = async (req: Request, res: Response) => {
   const { cardId, password } = req.body;
 
   const card = await cardsService.verifyIfCardExists(cardId);
-  await cardsService.verifyIfCardIsVirtual(card);
-  await cardsService.verifyPassword(password, cardId);
+  await cardUtils.verifyIfCardIsVirtual(card);
+  await cardUtils.verifyPassword(password, card);
 
   await cardsService.deleteCard(cardId);
 

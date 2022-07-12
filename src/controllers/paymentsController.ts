@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import AppError from '../utils/errors/AppError.js';
 import { cardsService, paymentsService } from './../services/index.js';
+import * as cardUtils from './../utils/cardUtils.js';
 
 const makePayment = async (req: Request, res: Response) => {
   const {
@@ -16,11 +16,11 @@ const makePayment = async (req: Request, res: Response) => {
   } = req.body;
 
   const card = await cardsService.verifyIfCardExists(cardId);
-  await cardsService.verifyIfCardIsNotVirtual(card);
-  await cardsService.verifyIfCardIsActive(card);
-  await cardsService.verifyIfCardIsExpired(card);
-  await cardsService.verifyIfCardIsBloqued(card);
-  await cardsService.verifyPassword(password, cardId);
+  await cardUtils.verifyIfCardIsNotVirtual(card);
+  await cardUtils.verifyIfCardIsActive(card);
+  await cardUtils.verifyIfCardIsExpired(card);
+  await cardUtils.verifyIfCardIsBloqued(card);
+  await cardUtils.verifyPassword(password, card);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
   paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
   const balance = await cardsService.getBalance(cardId);
@@ -55,10 +55,10 @@ const makeOnlinePayment = async (req: Request, res: Response) => {
     expirationDate,
   );
 
-  await cardsService.verifyIfCardIsActive(card);
-  await cardsService.verifyIfCardIsExpired(card);
-  await cardsService.verifyIfCardIsBloqued(card);
-  await cardsService.verifySecurityCode(securityCode, card);
+  await cardUtils.verifyIfCardIsActive(card);
+  await cardUtils.verifyIfCardIsExpired(card);
+  await cardUtils.verifyIfCardIsBloqued(card);
+  await cardUtils.verifySecurityCode(securityCode, card);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
   paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
 

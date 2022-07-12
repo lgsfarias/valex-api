@@ -1,16 +1,17 @@
 import { Request, Response } from 'express';
 import { cardsService } from '../services/index.js';
+import * as cardUtils from './../utils/cardUtils.js';
 
 const createCard = async (req: Request, res: Response) => {
   const { employeeId, type } = req.body;
 
   const employee = await cardsService.getEmployeeById(employeeId);
   await cardsService.verifyIfEmployeeHasCard(employeeId, type);
-  const cardNumber = cardsService.generateCardNumber();
-  const cardholderName = cardsService.generateCardHolderName(employee);
-  const expirationDate = cardsService.generateExpirationDate();
+  const cardNumber = cardUtils.generateCardNumber();
+  const cardholderName = cardUtils.generateCardHolderName(employee);
+  const expirationDate = cardUtils.generateExpirationDate();
   const [securityCode, encryptedsecurityCode] =
-    cardsService.generateSecurityCode();
+    cardUtils.generateSecurityCode();
 
   const card = {
     employeeId,
@@ -32,7 +33,12 @@ const createCard = async (req: Request, res: Response) => {
 const activateCard = async (req: Request, res: Response) => {
   const { cardId, cardCvv, password } = req.body;
 
-  await cardsService.activateCard(cardId, cardCvv, password);
+  const card = await cardsService.verifyIfCardExists(cardId);
+  await cardUtils.verifyIfCardIsNotActive(card);
+  await cardUtils.verifyIfCardIsExpired(card);
+  await cardUtils.verifySecurityCode(cardCvv, card);
+
+  await cardsService.activateCard(cardId, password);
 
   res.status(200).send('Card activated successfully');
 };
@@ -56,10 +62,10 @@ const blockCard = async (req: Request, res: Response) => {
   const { cardId, password } = req.body;
 
   const card = await cardsService.verifyIfCardExists(cardId);
-  await cardsService.verifyIfCardIsActive(card);
-  await cardsService.verifyIfCardIsExpired(card);
-  await cardsService.verifyIfCardIsBloqued(card);
-  await cardsService.verifyPassword(password, cardId);
+  await cardUtils.verifyIfCardIsActive(card);
+  await cardUtils.verifyIfCardIsExpired(card);
+  await cardUtils.verifyIfCardIsBloqued(card);
+  await cardUtils.verifyPassword(password, card);
 
   await cardsService.blockCard(cardId);
 
@@ -70,10 +76,10 @@ const unlockCard = async (req: Request, res: Response) => {
   const { cardId, password } = req.body;
 
   const card = await cardsService.verifyIfCardExists(cardId);
-  await cardsService.verifyIfCardIsActive(card);
-  await cardsService.verifyIfCardIsExpired(card);
-  await cardsService.verifyIfCardIsUnlocked(card);
-  await cardsService.verifyPassword(password, cardId);
+  await cardUtils.verifyIfCardIsActive(card);
+  await cardUtils.verifyIfCardIsExpired(card);
+  await cardUtils.verifyIfCardIsUnlocked(card);
+  await cardUtils.verifyPassword(password, card);
 
   await cardsService.unlockCard(cardId);
 
