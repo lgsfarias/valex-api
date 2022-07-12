@@ -9,6 +9,9 @@ import makePaymentSchema from './makePayment.schema.js';
 import makeOnlinePaymentSchema from './makeOnlinePayment.schema.js';
 //recharges routes
 import makeRechargeSchema from './makeRecharge.schema.js';
+//virtual cards routes
+import createVirtualCardSchema from './createVirtualCard.schema.js';
+import deleteVirtualCardSchema from './deleteVirtualCard.schema.js';
 
 export {
   createCardSchema,
@@ -19,4 +22,6 @@ export {
   makePaymentSchema,
   makeOnlinePaymentSchema,
   makeRechargeSchema,
+  createVirtualCardSchema,
+  deleteVirtualCardSchema,
 };
