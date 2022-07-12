@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { cardsService, paymentsService } from './../services/index.js';
 import * as cardUtils from './../utils/cardUtils.js';
+import * as paymentUtils from './../utils/paymentUtils.js';
 
 const makePayment = async (req: Request, res: Response) => {
   const {
@@ -22,9 +23,9 @@ const makePayment = async (req: Request, res: Response) => {
   await cardUtils.verifyIfCardIsBloqued(card);
   await cardUtils.verifyPassword(password, card);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
-  paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
+  paymentUtils.verifyIfBusinessIsTheSameType(business, card.type);
   const balance = await cardsService.getBalance(cardId);
-  await paymentsService.verifyIfCardHasEnoughBalance(balance, amount);
+  await paymentUtils.verifyIfCardHasEnoughBalance(balance, amount);
   await paymentsService.makePayment({ cardId, businessId, amount });
 
   res.status(200).json({
@@ -60,12 +61,12 @@ const makeOnlinePayment = async (req: Request, res: Response) => {
   await cardUtils.verifyIfCardIsBloqued(card);
   await cardUtils.verifySecurityCode(securityCode, card);
   const business = await paymentsService.verifyIfBusinessExist(businessId);
-  paymentsService.verifyIfBusinessIsTheSameType(business, card.type);
+  paymentUtils.verifyIfBusinessIsTheSameType(business, card.type);
 
   const balance = await cardsService.getBalance(
     card.isVirtual ? card.originalCardId : card.id,
   );
-  await paymentsService.verifyIfCardHasEnoughBalance(balance, amount);
+  await paymentUtils.verifyIfCardHasEnoughBalance(balance, amount);
   await paymentsService.makePayment({
     cardId: card.isVirtual ? card.originalCardId : card.id,
     businessId,
