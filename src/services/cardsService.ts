@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker';
 import AppError from '../utils/errors/AppError.js';
 import { Card } from '../repositories/cardRepository.js';
 import {

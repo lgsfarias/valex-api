@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import joi from 'joi';
 import { cardsService } from '../services/index.js';
 import * as cardUtils from './../utils/cardUtils.js';
 
@@ -44,7 +45,13 @@ const activateCard = async (req: Request, res: Response) => {
 };
 
 const getBalance = async (req: Request, res: Response) => {
-  const { cardId } = req.body;
+  const cardId = +req.params.cardId;
+
+  const cardIdSchema = joi.number().integer().positive().required();
+  const { error } = cardIdSchema.validate(cardId);
+  if (error) {
+    throw new Error(error.message);
+  }
 
   await cardsService.verifyIfCardExists(cardId);
   const balance = await cardsService.getBalance(cardId);
