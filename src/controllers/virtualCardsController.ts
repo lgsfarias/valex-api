@@ -9,7 +9,7 @@ const createVirtualCard = async (req: Request, res: Response) => {
   await cardUtils.verifyIfCardIsActive(originalCard);
   await cardUtils.verifyIfCardIsExpired(originalCard);
   await cardUtils.verifyIfCardIsBloqued(originalCard);
-  await cardUtils.verifyPassword(password, originalCardId);
+  await cardUtils.verifyPassword(password, originalCard);
 
   const cardNumber = cardUtils.generateCardNumber('mastercard');
   const expirationDate = cardUtils.generateExpirationDate();
