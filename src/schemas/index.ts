@@ -3,6 +3,8 @@ import activateCardSchema from './activateCard.schema.js';
 import getBalanceSchema from './getBalance.schema.js';
 import blockCardSchema from './blockCard.schema.js';
 import unlockCardSchema from './unlockCard.schema.js';
+import makePaymentSchema from './makePayment.schema.js';
+import makeOnlinePaymentSchema from './makeOnlinePayment.schema.js';
 
 export {
   createCardSchema,
@@ -10,4 +12,6 @@ export {
   getBalanceSchema,
   blockCardSchema,
   unlockCardSchema,
+  makePaymentSchema,
+  makeOnlinePaymentSchema,
 };

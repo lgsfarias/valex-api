@@ -15,15 +15,6 @@ const makePayment = async (req: Request, res: Response) => {
     amount: number;
   } = req.body;
 
-  if (!cardId || !password || !businessId || !amount) {
-    console.log(req.body);
-    throw new AppError('Missing parameters', 400);
-  }
-
-  if (amount < 0) {
-    throw new AppError('Invalid amount', 400);
-  }
-
   const card = await cardsService.verifyIfCardExists(cardId);
   await cardsService.verifyIfCardIsNotVirtual(card);
   await cardsService.verifyIfCardIsActive(card);
@@ -57,24 +48,6 @@ const makeOnlinePayment = async (req: Request, res: Response) => {
     businessId: number;
     amount: number;
   } = req.body;
-
-  const parameters = [
-    'cardNumber',
-    'cardholderName',
-    'expirationDate',
-    'securityCode',
-    'businessId',
-    'amount',
-  ];
-  for (const key of parameters) {
-    if (!req.body[key]) {
-      throw new AppError(`Missing ${key}`, 400);
-    }
-  }
-
-  if (amount < 0) {
-    throw new AppError('Invalid amount', 400);
-  }
 
   const card = await cardsService.verifyIfCardExistsByDetails(
     cardNumber,
