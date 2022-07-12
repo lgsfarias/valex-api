@@ -23,8 +23,8 @@ cardsRouter.post(
   verifySchema(schemas.activateCardSchema),
   activateCard,
 );
-cardsRouter.get('/balance', getBalance);
-cardsRouter.post('/lock', blockCard);
-cardsRouter.post('/unlock', unlockCard);
+cardsRouter.get('/balance', verifySchema(schemas.getBalanceSchema), getBalance);
+cardsRouter.post('/lock', verifySchema(schemas.blockCardSchema), blockCard);
+cardsRouter.post('/unlock', verifySchema(schemas.unlockCardSchema), unlockCard);
 
 export default cardsRouter;
